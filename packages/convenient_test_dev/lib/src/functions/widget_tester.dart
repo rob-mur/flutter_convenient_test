@@ -81,11 +81,11 @@ extension ExtWidgetTester on WidgetTester {
   Future<void> debugWidgetTestSaveScreenshot(
       [Finder? finder, String stem = 'debug_screenshot']) async {
     await runAsync(() async {
-      final image =
-          await captureImage(element(finder ?? find.byType(MaterialApp)));
-      final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!
-          .buffer
-          .asUint8List();
+      // final image =
+      //     await captureImage(element(finder ?? find.byType(MaterialApp)));
+      // final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!
+      //     .buffer
+      //     .asUint8List();
       // TODO: Base dir doesn't exist under web
       // final path = p.join((goldenFileComparator as LocalFileComparator).basedir.path, '$stem.png');
       // debugPrint(
