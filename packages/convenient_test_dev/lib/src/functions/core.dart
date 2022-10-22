@@ -38,7 +38,8 @@ class ConvenientTest {
     _activeInstance = value;
   }
 
-  static Future<void> withActiveInstance(WidgetTester tester, Future<void> Function(ConvenientTest) body) async {
+  static Future<void> withActiveInstance(
+      WidgetTester tester, Future<void> Function(ConvenientTest) body) async {
     final t = ConvenientTest(tester);
     activeInstance = t;
     try {
@@ -50,24 +51,32 @@ class ConvenientTest {
 }
 
 /// Please make this the only method in your "main" method.
-Future<void> convenientTestMain(ConvenientTestSlot slot, VoidCallback testBody) async {
+Future<void> convenientTestMain(
+    ConvenientTestSlot slot, VoidCallback testBody) async {
   myGetIt.registerSingleton<ConvenientTestSlot>(slot);
   // MUST do it this early, because we really need the rpc client immediately
-  myGetIt.registerSingleton<ConvenientTestManagerClient>(ExtConvenientTestManagerClient.create());
+  myGetIt.registerSingleton<ConvenientTestManagerClient>(
+      ExtConvenientTestManagerClient.create());
 
-  final currentRunConfig = await myGetIt.get<ConvenientTestManagerClient>().getWorkerCurrentRunConfig(Empty());
+  final currentRunConfig = await myGetIt
+      .get<ConvenientTestManagerClient>()
+      .getWorkerCurrentRunConfig(Empty());
   switch (currentRunConfig.whichSubType()) {
     case WorkerCurrentRunConfig_SubType.interactiveApp:
       return _runModeInteractiveApp();
     case WorkerCurrentRunConfig_SubType.integrationTest:
-      return _runModeIntegrationTest(testBody, currentRunConfig.integrationTest);
+      return _runModeIntegrationTest(
+          testBody, currentRunConfig.integrationTest);
     case WorkerCurrentRunConfig_SubType.notSet:
-      throw Exception('Unknown WorkerCurrentRunConfig_SubType: $currentRunConfig');
+      throw Exception(
+          'Unknown WorkerCurrentRunConfig_SubType: $currentRunConfig');
   }
 }
 
 Future<void> _runModeInteractiveApp() async {
-  await myGetIt.get<ConvenientTestSlot>().appMain(AppMainExecuteMode.interactiveApp);
+  await myGetIt
+      .get<ConvenientTestSlot>()
+      .appMain(AppMainExecuteMode.interactiveApp);
 }
 
 Future<void> _runModeIntegrationTest(
@@ -97,11 +106,14 @@ Future<void> _runModeIntegrationTest(
           // (2) [IntegrationTestWidgetsFlutterBinding] must be called *inside* `collectIntoDeclarer`,
           //     because it calls some logic inside it.
           // ignore: avoid_print
-          print('Please do *not* initialize `WidgetsBinding.instance` outside `convenientTestMain`.');
+          print(
+              'Please do *not* initialize `WidgetsBinding.instance` outside `convenientTestMain`.');
           rethrow;
         }
 
-        unawaited(myGetIt.get<ConvenientTestManagerClient>().reportSingle(ReportItem(setUpAll: SetUpAll())));
+        unawaited(myGetIt
+            .get<ConvenientTestManagerClient>()
+            .reportSingle(ReportItem(setUpAll: SetUpAll())));
 
         setup();
 
@@ -123,19 +135,22 @@ Future<void> _runModeIntegrationTest(
   });
 }
 
-void _configureGoldens(WorkerCurrentRunConfig_IntegrationTest currentRunConfig) {
+void _configureGoldens(
+    WorkerCurrentRunConfig_IntegrationTest currentRunConfig) {
   const _kTag = 'ConfigureGoldens';
 
-  goldenFileComparator = EnhancedLocalFileComparator(
-      Uri.file(path.join(CompileTimeConfig.kAppCodeDir, 'integration_test/dummy.dart')),
-      captureFailure: true);
+  // TODO: Doesn't exist under web
+  // goldenFileComparator = EnhancedLocalFileComparator(
+  //     Uri.file(path.join(
+  //         CompileTimeConfig.kAppCodeDir, 'integration_test/dummy.dart')),
+  //     captureFailure: true);
   autoUpdateGoldenFiles = currentRunConfig.autoUpdateGoldenFiles;
 
-  Log.d(
-      _kTag,
-      'configure '
-      'autoUpdateGoldenFiles=$autoUpdateGoldenFiles '
-      'comparator.basedir=${(goldenFileComparator as LocalFileComparator).basedir}');
+  // Log.d(
+  //     _kTag,
+  //     'configure '
+  //     'autoUpdateGoldenFiles=$autoUpdateGoldenFiles '
+  //     'comparator.basedir=${(goldenFileComparator as LocalFileComparator).basedir}');
 }
 
 Future<void> _lastTearDownAll() async {
@@ -144,7 +159,10 @@ Future<void> _lastTearDownAll() async {
   // need to `await` to ensure it is sent
   await myGetIt.get<ConvenientTestManagerClient>().reportSingle(ReportItem(
         tearDownAll: TearDownAll(
-          resolvedExecutionFilter: myGetIt.get<ConvenientTestExecutor>().resolvedExecutionFilter.toProto(),
+          resolvedExecutionFilter: myGetIt
+              .get<ConvenientTestExecutor>()
+              .resolvedExecutionFilter
+              .toProto(),
         ),
       ));
 
@@ -174,9 +192,12 @@ void tTestWidgets(
 }) {
   testWidgets(
     description,
-    (tester) async => await ConvenientTest.withActiveInstance(tester, (t) async {
+    (tester) async =>
+        await ConvenientTest.withActiveInstance(tester, (t) async {
       final log = t.log('START APP', '');
-      await myGetIt.get<ConvenientTestSlot>().appMain(AppMainExecuteMode.integrationTest);
+      await myGetIt
+          .get<ConvenientTestSlot>()
+          .appMain(AppMainExecuteMode.integrationTest);
       settle ? await t.pumpAndSettle() : await t.pump();
       await log.snapshot(name: 'after');
 

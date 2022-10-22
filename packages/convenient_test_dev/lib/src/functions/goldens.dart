@@ -13,142 +13,168 @@ import 'package:image/image.dart' as image;
 import 'package:path/path.dart' as path;
 
 part 'goldens.g.dart';
+// TODO: Doesn't exist under web
+// @immutable
+// class GoldenMatcherGenerator {
+//   final String folder;
+//   final String extension;
+//
+//   const GoldenMatcherGenerator({
+//     required this.folder,
+//     this.extension = 'png',
+//   });
+//
+//   Matcher call(String stem, [GoldenConfig? config]) =>
+//       flutter_test.matchesGoldenFile(_generateKey(stem, config));
+//
+//   Uri _generateKey(String stem, GoldenConfig? config) =>
+//       EnhancedLocalFileComparator.createUri('$folder/$stem.$extension', config);
+// }
 
-@immutable
-class GoldenMatcherGenerator {
-  final String folder;
-  final String extension;
-
-  const GoldenMatcherGenerator({
-    required this.folder,
-    this.extension = 'png',
-  });
-
-  Matcher call(String stem, [GoldenConfig? config]) => flutter_test.matchesGoldenFile(_generateKey(stem, config));
-
-  Uri _generateKey(String stem, GoldenConfig? config) =>
-      EnhancedLocalFileComparator.createUri('$folder/$stem.$extension', config);
-}
-
-class EnhancedLocalFileComparator extends LocalFileComparator {
-  static const _kTag = 'EnhancedLocalFileComparator';
-
-  static EnhancedLocalFileComparator get instance => goldenFileComparator as EnhancedLocalFileComparator;
-
-  final bool captureFailure;
-
-  GoldenFailureInfo? get lastFailure => _lastFailure;
-  GoldenFailureInfo? _lastFailure;
-
-  EnhancedLocalFileComparator(super.testFile, {required this.captureFailure});
-
-  // ref https://github.com/flutter/flutter/pull/77014#issuecomment-1048896776
-  factory EnhancedLocalFileComparator.configFromCurrent({required bool captureFailure}) => EnhancedLocalFileComparator(
-        Uri.file(path.join(path.fromUri((goldenFileComparator as LocalFileComparator).basedir), 'something.dart')),
-        captureFailure: captureFailure,
-      );
-
-  String get basedirPath => path.fromUri(basedir);
-
-  static Uri createUri(String path, GoldenConfig? config) => config.toUri(path);
-
-  // NOTE MODIFIED from [super.compare]
-  @override
-  Future<bool> compare(Uint8List imageBytesBeforeCrop, Uri golden) async {
-    final config = GoldenConfig.fromUri(golden);
-
-    final imageBytesCropped = _cropImage(imageBytesBeforeCrop, config.cropBbox);
-
-    // NOTE MODIFIED [GoldenFileComparator.compareLists] -> [myCompareLists]
-    final MyComparisonResult result = await myCompareLists(
-      imageBytesCropped,
-      await getGoldenBytes(golden),
-    );
-
-    // ref https://github.com/flutter/flutter/pull/77014#issuecomment-1048896776
-    if (!config.check(result)) {
-      // print('hi ${basedir.path}');
-      final String error =
-          // ignore: prefer_interpolation_to_compose_strings
-          await generateFailureOutput(result, golden, basedir) + '\npixelDiffHistogram=${result.pixelDiffHistogram}';
-      throw FlutterError(error);
-    }
-    if (!result.passed) {
-      Log.d(
-          _kTag,
-          'A tolerable difference of '
-          'diffPercent=${result.diffPercent * 100}% '
-          'with pixelDiffHistogram=${result.pixelDiffHistogram} '
-          'was found when comparing $golden.');
-    }
-    return true;
-
-    // if (!result.passed) {
-    //   final String error = await generateFailureOutput(result, golden, basedir);
-    //   throw FlutterError(error);
-    // }
-    // return result.passed;
-  }
-
-  @override
-  Future<void> update(Uri golden, Uint8List imageBytesBeforeCrop) async {
-    final config = GoldenConfig.fromUri(golden);
-
-    if (!config.allowUpdate) {
-      Log.d(_kTag, 'update() is requested but skipped (golden=$golden)');
-      return;
-    }
-
-    final imageBytesCropped = _cropImage(imageBytesBeforeCrop, config.cropBbox);
-
-    await super.update(golden, imageBytesCropped);
-  }
-
-  @override
-  Future<String> generateFailureOutput(ComparisonResult result, Uri golden, Uri basedir, {String key = ''}) async {
-    return captureFailure
-        ? _generateFailureOutputByCapturingFailure(result, golden, basedir, key: key)
-        : super.generateFailureOutput(result, golden, basedir, key: key);
-  }
-
-  // NOTE reference: [super.generateFailureOutput], but this function is (almost) completely rewritten
-  Future<String> _generateFailureOutputByCapturingFailure(ComparisonResult result, Uri golden, Uri basedir,
-      {String key = ''}) async {
-    Log.i(_kTag, 'generateFailureOutput golden=$golden result=$result');
-
-    return TestAsyncUtils.guard<String>(() async {
-      final info = GoldenFailureInfo(images: {});
-
-      for (final entry in result.diffs?.entries ?? <MapEntry<String, Image>>[]) {
-        final pngBytes = await entry.value.toByteData(format: ImageByteFormat.png);
-        info.images[entry.key] = pngBytes!.buffer.asUint8List();
-      }
-
-      _lastFailure = info;
-
-      return 'Golden "$golden": ${result.error}';
-    });
-  }
-
-  static Future<MyComparisonResult> myCompareLists(List<int> test, List<int> master) async =>
-      _compareListsAllowSizeDiffer(test, master);
-}
+// TODO: Doesn't exist under web
+//
+// class EnhancedLocalFileComparator extends LocalFileComparator {
+//   static const _kTag = 'EnhancedLocalFileComparator';
+//
+//   static EnhancedLocalFileComparator get instance =>
+//       goldenFileComparator as EnhancedLocalFileComparator;
+//
+//   final bool captureFailure;
+//
+//   GoldenFailureInfo? get lastFailure => _lastFailure;
+//   GoldenFailureInfo? _lastFailure;
+//
+//   EnhancedLocalFileComparator(super.testFile, {required this.captureFailure});
+//
+//   // ref https://github.com/flutter/flutter/pull/77014#issuecomment-1048896776
+//   // TODO: Doesn't exist under web
+//   // factory EnhancedLocalFileComparator.configFromCurrent(
+//   //         {required bool captureFailure}) =>
+//   //     EnhancedLocalFileComparator(
+//   //       Uri.file(path.join(
+//   //           path.fromUri((goldenFileComparator as LocalFileComparator).basedir),
+//   //           'something.dart')),
+//   //       captureFailure: captureFailure,
+//   //     );
+//
+//   // TODO: Doesn't exist under web
+//   // String get basedirPath => path.fromUri(basedir);
+//
+//   static Uri createUri(String path, GoldenConfig? config) => config.toUri(path);
+//
+//   // NOTE MODIFIED from [super.compare]
+//   @override
+//   Future<bool> compare(Uint8List imageBytesBeforeCrop, Uri golden) async {
+//     final config = GoldenConfig.fromUri(golden);
+//
+//     final imageBytesCropped = _cropImage(imageBytesBeforeCrop, config.cropBbox);
+//
+//     // NOTE MODIFIED [GoldenFileComparator.compareLists] -> [myCompareLists]
+//     // TODO: Doesn't exist under web
+//     // final MyComparisonResult result = await myCompareLists(
+//     //   imageBytesCropped,
+//     //   await getGoldenBytes(golden),
+//     // );
+//
+//     // ref https://github.com/flutter/flutter/pull/77014#issuecomment-1048896776
+//     // if (!config.check(result)) {
+//     //   // print('hi ${basedir.path}');
+//     //   final String error = '';
+//     //   // ignore: prefer_interpolation_to_compose_strings
+//     //   // TODO: Doesn't exist under web
+//     //   // await generateFailureOutput(result, golden, basedir) +
+//     //   //     '\npixelDiffHistogram=${result.pixelDiffHistogram}';
+//     //   throw FlutterError(error);
+//     // }
+//     // if (!result.passed) {
+//     //   Log.d(
+//     //       _kTag,
+//     //       'A tolerable difference of '
+//     //       'diffPercent=${result.diffPercent * 100}% '
+//     //       'with pixelDiffHistogram=${result.pixelDiffHistogram} '
+//     //       'was found when comparing $golden.');
+//     // }
+//     return true;
+//
+//     // if (!result.passed) {
+//     //   final String error = await generateFailureOutput(result, golden, basedir);
+//     //   throw FlutterError(error);
+//     // }
+//     // return result.passed;
+//   }
+//
+//   @override
+//   Future<void> update(Uri golden, Uint8List imageBytesBeforeCrop) async {
+//     final config = GoldenConfig.fromUri(golden);
+//
+//     if (!config.allowUpdate) {
+//       Log.d(_kTag, 'update() is requested but skipped (golden=$golden)');
+//       return;
+//     }
+//
+//     final imageBytesCropped = _cropImage(imageBytesBeforeCrop, config.cropBbox);
+//
+//     await super.update(golden, imageBytesCropped);
+//   }
+//
+//   @override
+//   Future<String> generateFailureOutput(
+//       ComparisonResult result, Uri golden, Uri basedir,
+//       {String key = ''}) async {
+//     // TODO: Doesn't exist under web
+//     return '';
+//     // return captureFailure
+//     //     ? _generateFailureOutputByCapturingFailure(result, golden, basedir, key: key)
+//     //     : super.generateFailureOutput(result, golden, basedir, key: key);
+//   }
+//
+//   // NOTE reference: [super.generateFailureOutput], but this function is (almost) completely rewritten
+//   Future<String> _generateFailureOutputByCapturingFailure(
+//       ComparisonResult result, Uri golden, Uri basedir,
+//       {String key = ''}) async {
+//     Log.i(_kTag, 'generateFailureOutput golden=$golden result=$result');
+//
+//     return TestAsyncUtils.guard<String>(() async {
+//       final info = GoldenFailureInfo(images: {});
+//
+//       for (final entry
+//           in result.diffs?.entries ?? <MapEntry<String, Image>>[]) {
+//         final pngBytes =
+//             await entry.value.toByteData(format: ImageByteFormat.png);
+//         info.images[entry.key] = pngBytes!.buffer.asUint8List();
+//       }
+//
+//       _lastFailure = info;
+//
+//       return 'Golden "$golden": ${result.error}';
+//     });
+//   }
+//
+//   static Future<MyComparisonResult> myCompareLists(
+//           List<int> test, List<int> master) async =>
+//       _compareListsAllowSizeDiffer(test, master);
+// }
 
 Uint8List _cropImage(Uint8List raw, Rectangle<int>? bbox) {
   if (bbox == null) return raw;
 
   final rawImage = image.decodeImage(raw)!;
-  final croppedImage = image.copyCrop(rawImage, bbox.left, bbox.top, bbox.width, bbox.height);
+  final croppedImage =
+      image.copyCrop(rawImage, bbox.left, bbox.top, bbox.width, bbox.height);
   return image.encodeBmp(croppedImage) as Uint8List;
 }
 
-Future<MyComparisonResult> _compareListsAllowSizeDiffer(List<int> test, List<int> master) async {
+Future<MyComparisonResult> _compareListsAllowSizeDiffer(
+    List<int> test, List<int> master) async {
   const _kTag = 'myCompareLists';
 
   final raw = await _compareListsWithExtraOutput(test, master);
 
-  if (!raw.passed && (raw.error ?? '').startsWith('Pixel test failed, image sizes do not match.')) {
-    Log.d(_kTag, 'see result.error=${raw.error}, thus change image size and re-compare');
+  if (!raw.passed &&
+      (raw.error ?? '')
+          .startsWith('Pixel test failed, image sizes do not match.')) {
+    Log.d(_kTag,
+        'see result.error=${raw.error}, thus change image size and re-compare');
     return _compareListsGivenSizeDiffer(test, master, raw);
   }
 
@@ -172,7 +198,8 @@ Future<MyComparisonResult> _compareListsGivenSizeDiffer(
   final testTarget = padAndEncode(testRawImage);
   final masterTarget = padAndEncode(masterRawImage);
 
-  final secondResult = await _compareListsWithExtraOutput(testTarget, masterTarget);
+  final secondResult =
+      await _compareListsWithExtraOutput(testTarget, masterTarget);
 
   return MyComparisonResult(
     passed: false,
@@ -186,7 +213,8 @@ Future<MyComparisonResult> _compareListsGivenSizeDiffer(
 // NOTE MODIFIED from [compareLists]
 /// Returns a [MyComparisonResult] to describe the pixel differential of the
 /// [test] and [master] image bytes provided.
-Future<MyComparisonResult> _compareListsWithExtraOutput(List<int>? test, List<int>? master) async {
+Future<MyComparisonResult> _compareListsWithExtraOutput(
+    List<int>? test, List<int>? master) async {
   if (identical(test, master)) {
     return MyComparisonResult(
       passed: true,
@@ -204,17 +232,20 @@ Future<MyComparisonResult> _compareListsWithExtraOutput(List<int>? test, List<in
     );
   }
 
-  final Codec testImageCodec = await instantiateImageCodec(Uint8List.fromList(test));
+  final Codec testImageCodec =
+      await instantiateImageCodec(Uint8List.fromList(test));
   final Image testImage = (await testImageCodec.getNextFrame()).image;
 
-  final Codec masterImageCodec = await instantiateImageCodec(Uint8List.fromList(master));
+  final Codec masterImageCodec =
+      await instantiateImageCodec(Uint8List.fromList(master));
   final Image masterImage = (await masterImageCodec.getNextFrame()).image;
 
   return await compareUiImages(testImage, masterImage);
 }
 
 // NOTE extracted from [_compareLists]
-Future<MyComparisonResult> compareUiImages(Image testImage, Image masterImage) async {
+Future<MyComparisonResult> compareUiImages(
+    Image testImage, Image masterImage) async {
   final ByteData? testImageRgba = await testImage.toByteData();
   final ByteData? masterImageRgba = await masterImage.toByteData();
 
@@ -234,13 +265,17 @@ Future<MyComparisonResult> compareUiImages(Image testImage, Image masterImage) a
 
   int pixelDiffCount = 0;
   final int totalPixels = width * height;
-  final pixelDiffHistogram = SimpleHistogram(totalSampleCount: totalPixels); // NOTE MODIFIED ADD
+  final pixelDiffHistogram =
+      SimpleHistogram(totalSampleCount: totalPixels); // NOTE MODIFIED ADD
   final ByteData invertedMasterRgba = _invert(masterImageRgba!);
   final ByteData invertedTestRgba = _invert(testImageRgba!);
 
-  final Uint8List testImageBytes = (await testImage.toByteData())!.buffer.asUint8List();
+  final Uint8List testImageBytes =
+      (await testImage.toByteData())!.buffer.asUint8List();
   final ByteData maskedDiffRgba = ByteData(testImageBytes.length);
-  maskedDiffRgba.buffer.asUint8List().setRange(0, testImageBytes.length, testImageBytes);
+  maskedDiffRgba.buffer
+      .asUint8List()
+      .setRange(0, testImageBytes.length, testImageBytes);
   final ByteData isolatedDiffRgba = ByteData(width * height * 4);
 
   for (int x = 0; x < width; x++) {
@@ -249,13 +284,15 @@ Future<MyComparisonResult> compareUiImages(Image testImage, Image masterImage) a
       final int testPixel = testImageRgba.getUint32(byteOffset);
       final int masterPixel = masterImageRgba.getUint32(byteOffset);
 
-      final int diffPixel = (_readRed(testPixel) - _readRed(masterPixel)).abs() +
-          (_readGreen(testPixel) - _readGreen(masterPixel)).abs() +
-          (_readBlue(testPixel) - _readBlue(masterPixel)).abs() +
-          (_readAlpha(testPixel) - _readAlpha(masterPixel)).abs();
+      final int diffPixel =
+          (_readRed(testPixel) - _readRed(masterPixel)).abs() +
+              (_readGreen(testPixel) - _readGreen(masterPixel)).abs() +
+              (_readBlue(testPixel) - _readBlue(masterPixel)).abs() +
+              (_readAlpha(testPixel) - _readAlpha(masterPixel)).abs();
 
       if (diffPixel != 0) {
-        final int invertedMasterPixel = invertedMasterRgba.getUint32(byteOffset);
+        final int invertedMasterPixel =
+            invertedMasterRgba.getUint32(byteOffset);
         final int invertedTestPixel = invertedTestRgba.getUint32(byteOffset);
         // We grab the max of the 0xAABBGGRR encoded bytes, and then convert
         // back to 0xRRGGBBAA for the actual pixel value, since this is how it
@@ -335,7 +372,11 @@ Future<Image> _createImage(ByteData bytes, int width, int height) {
 }
 
 // Converts a 32 bit rgba pixel to a 32 bit abgr pixel
-int _toABGR(int rgba) => (_readAlpha(rgba) << 24) | (_readBlue(rgba) << 16) | (_readGreen(rgba) << 8) | _readRed(rgba);
+int _toABGR(int rgba) =>
+    (_readAlpha(rgba) << 24) |
+    (_readBlue(rgba) << 16) |
+    (_readGreen(rgba) << 8) |
+    _readRed(rgba);
 
 // Converts a 32 bit abgr pixel to a 32 bit rgba pixel
 int _toRGBA(int abgr) =>
@@ -374,12 +415,15 @@ class SimpleHistogram {
 
   SimpleHistogram({required this.totalSampleCount});
 
-  void addSample(int sample) => _countMap[sample] = (_countMap[sample] ?? 0) + 1;
+  void addSample(int sample) =>
+      _countMap[sample] = (_countMap[sample] ?? 0) + 1;
 
   int get maxSample => _countMap.keys.fold(0, max);
 
-  int sampleCountGreaterThan(int diffPerPixel) =>
-      _countMap.entries.where((entry) => entry.key >= diffPerPixel).map((e) => e.value).fold(0, (a, b) => a + b);
+  int sampleCountGreaterThan(int diffPerPixel) => _countMap.entries
+      .where((entry) => entry.key >= diffPerPixel)
+      .map((e) => e.value)
+      .fold(0, (a, b) => a + b);
 
   @override
   String toString() {
@@ -394,7 +438,8 @@ class SimpleHistogram {
   }
 }
 
-class _RectangleIntJsonConverter extends JsonConverter<Rectangle<int>, Map<String, Object?>> {
+class _RectangleIntJsonConverter
+    extends JsonConverter<Rectangle<int>, Map<String, Object?>> {
   const _RectangleIntJsonConverter();
 
   @override
@@ -449,7 +494,8 @@ class GoldenConfig {
         : GoldenConfig.fromJson(jsonDecode(configJson) as Map<String, Object?>);
   }
 
-  factory GoldenConfig.fromJson(Map<String, dynamic> json) => _$GoldenConfigFromJson(json);
+  factory GoldenConfig.fromJson(Map<String, dynamic> json) =>
+      _$GoldenConfigFromJson(json);
 
   Map<String, dynamic> toJson() => _$GoldenConfigToJson(this);
 }
@@ -467,10 +513,13 @@ class GoldenTolerationEntry {
 
   static GoldenConfig? fromUri(Uri golden) {
     final configJson = golden.queryParameters['config'];
-    return configJson == null ? null : GoldenConfig.fromJson(jsonDecode(configJson) as Map<String, Object?>);
+    return configJson == null
+        ? null
+        : GoldenConfig.fromJson(jsonDecode(configJson) as Map<String, Object?>);
   }
 
-  factory GoldenTolerationEntry.fromJson(Map<String, dynamic> json) => _$GoldenTolerationEntryFromJson(json);
+  factory GoldenTolerationEntry.fromJson(Map<String, dynamic> json) =>
+      _$GoldenTolerationEntryFromJson(json);
 
   Map<String, dynamic> toJson() => _$GoldenTolerationEntryToJson(this);
 }
@@ -500,8 +549,10 @@ extension ExtGoldenConfig on GoldenConfig {
     }
 
     for (final entry in greaterThanToleration ?? <GoldenTolerationEntry>[]) {
-      final sampleCountForThresh = pixelDiffHistogram.sampleCountGreaterThan(entry.diffPerPixel);
-      if (sampleCountForThresh > entry.countPercent * pixelDiffHistogram.totalSampleCount) {
+      final sampleCountForThresh =
+          pixelDiffHistogram.sampleCountGreaterThan(entry.diffPerPixel);
+      if (sampleCountForThresh >
+          entry.countPercent * pixelDiffHistogram.totalSampleCount) {
         Log.d(
             _kTag,
             'check failed because entry=${entry.toJson()} violates '
@@ -517,6 +568,9 @@ extension ExtGoldenConfig on GoldenConfig {
 extension on GoldenConfig? {
   Uri toUri(String path) {
     final that = this;
-    return Uri.file(path).replace(queryParameters: that == null ? null : <String, Object?>{'config': jsonEncode(that)});
+    return Uri.file(path).replace(
+        queryParameters: that == null
+            ? null
+            : <String, Object?>{'config': jsonEncode(that)});
   }
 }

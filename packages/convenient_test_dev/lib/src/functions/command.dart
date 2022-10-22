@@ -59,7 +59,8 @@ extension ExtTCommand on TCommand {
       );
 
   // syntax sugar
-  Future<void> shouldEquals(dynamic expected, {String? reason}) => should(equals(expected), reason: reason);
+  Future<void> shouldEquals(dynamic expected, {String? reason}) =>
+      should(equals(expected), reason: reason);
 }
 
 // NOTE "retry-ability" methodology, please see https://docs.cypress.io/guides/core-concepts/retry-ability
@@ -82,7 +83,8 @@ Future<void> _expectWithRetry(
     // ignore: avoid_dynamic_calls
     logUpdate(
       'ASSERT',
-      Descriptor().formatLogOfExpect(actualGetter(), matcher, overrideActualDescription: overrideActualDescription),
+      Descriptor().formatLogOfExpect(actualGetter(), matcher,
+          overrideActualDescription: overrideActualDescription),
       type: LogSubEntryType.ASSERT,
     );
 
@@ -117,7 +119,8 @@ Future<void> _expectWithRetry(
           printing: true,
         );
         await logSnapshot(name: 'failed');
-        await EnhancedLocalFileComparator.instance.lastFailure?.dumpToLogSnapshot(logSnapshot);
+        // TODO: Doesn't exist under web
+        // await EnhancedLocalFileComparator.instance.lastFailure?.dumpToLogSnapshot(logSnapshot);
         rethrow;
       }
 

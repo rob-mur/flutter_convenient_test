@@ -10,7 +10,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_test/src/_matchers_io.dart';
 import 'package:path/path.dart' as p;
 
-typedef EnterTextWithoutReplaceLogCallback = void Function(TextEditingValue oldValue, TextEditingValue newValue);
+typedef EnterTextWithoutReplaceLogCallback = void Function(
+    TextEditingValue oldValue, TextEditingValue newValue);
 
 extension ExtWidgetTester on WidgetTester {
   Future<void> enterTextWithoutReplace(Finder finder, String text,
@@ -77,23 +78,30 @@ extension ExtWidgetTester on WidgetTester {
   }
 
   // useful for widget tests (not for integration tests)
-  Future<void> debugWidgetTestSaveScreenshot([Finder? finder, String stem = 'debug_screenshot']) async {
+  Future<void> debugWidgetTestSaveScreenshot(
+      [Finder? finder, String stem = 'debug_screenshot']) async {
     await runAsync(() async {
-      final image = await captureImage(element(finder ?? find.byType(MaterialApp)));
-      final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
-      final path = p.join((goldenFileComparator as LocalFileComparator).basedir.path, '$stem.png');
-      debugPrint(
-          'debugWidgetTestSaveScreenshot save to path=$path image.size=${image.width}x${image.height} byte.length=${bytes.length}');
-      File(path).writeAsBytesSync(bytes);
+      final image =
+          await captureImage(element(finder ?? find.byType(MaterialApp)));
+      final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!
+          .buffer
+          .asUint8List();
+      // TODO: Base dir doesn't exist under web
+      // final path = p.join((goldenFileComparator as LocalFileComparator).basedir.path, '$stem.png');
+      // debugPrint(
+      //     'debugWidgetTestSaveScreenshot save to path=$path image.size=${image.width}x${image.height} byte.length=${bytes.length}');
+      // File(path).writeAsBytesSync(bytes);
     });
   }
 }
 
-const kDefaultConvenientTestGeneralizedEditableTextInfos = <GeneralizedEditableTextInfo>[EditableTextInfo()];
+const kDefaultConvenientTestGeneralizedEditableTextInfos =
+    <GeneralizedEditableTextInfo>[EditableTextInfo()];
 
 // users can customize this, for example, if they have a custom MyTextField which is similar to TextField
 // ignore: avoid-global-state
-var convenientTestGeneralizedEditableTextInfos = kDefaultConvenientTestGeneralizedEditableTextInfos;
+var convenientTestGeneralizedEditableTextInfos =
+    kDefaultConvenientTestGeneralizedEditableTextInfos;
 
 abstract class GeneralizedEditableTextInfo<T extends Widget> {
   const GeneralizedEditableTextInfo();
@@ -101,12 +109,14 @@ abstract class GeneralizedEditableTextInfo<T extends Widget> {
   Type get widgetType => T;
 
   T? findWidget(WidgetTester tester, Finder finder) => tester
-      .widgetList<T>(find.descendant(of: finder, matching: find.byType(widgetType), matchRoot: true))
+      .widgetList<T>(find.descendant(
+          of: finder, matching: find.byType(widgetType), matchRoot: true))
       .singleOrNull;
 
   TextEditingValue extractTextEditingValue(T widget);
 
-  Future<void> showKeyboard(WidgetTester tester, Finder finder) => tester.showKeyboard(finder);
+  Future<void> showKeyboard(WidgetTester tester, Finder finder) =>
+      tester.showKeyboard(finder);
 }
 
 /// Used for [TextField] and [EditableText]
@@ -114,14 +124,16 @@ class EditableTextInfo extends GeneralizedEditableTextInfo<EditableText> {
   const EditableTextInfo();
 
   @override
-  TextEditingValue extractTextEditingValue(EditableText widget) => widget.controller.value;
+  TextEditingValue extractTextEditingValue(EditableText widget) =>
+      widget.controller.value;
 
   @override
   String toString() => 'EditableTextInfo{}';
 }
 
 // TODO ok?
-TextEditingValue _enterTextWithoutReplaceActOnValue(TextEditingValue oldValue, String text) {
+TextEditingValue _enterTextWithoutReplaceActOnValue(
+    TextEditingValue oldValue, String text) {
   if (!oldValue.selection.isValid) {
     final newText = oldValue.text + text;
     return TextEditingValue(
